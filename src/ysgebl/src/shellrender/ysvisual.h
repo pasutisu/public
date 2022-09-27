@@ -93,8 +93,14 @@ public:
 
 	void CleanUp(void);
 
+public:
 	YSRESULT Load(YsTextInputStream &inStream);
+	YSRESULT Load(const YsListContainer <YsString> &text);
+private:
+	void BeginLoad(void);
+	void EndLoad(void);
 
+public:
 	void PrepareVboIfNotDoneYet(void);
 
 // Warning!

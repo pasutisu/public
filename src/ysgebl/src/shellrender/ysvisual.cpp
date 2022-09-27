@@ -69,8 +69,50 @@ void YsVisualSrf::CleanUp(void)
 YSRESULT YsVisualSrf::Load(YsTextInputStream &inStream)
 {
 	YsShellExtReader reader;
+
+	BeginLoad();
+	auto res=reader.MergeSrf(*this,inStream);
+	EndLoad();
+
+	return res;
+}
+YSRESULT YsVisualSrf::Load(const YsListContainer <YsString> &text)
+{
+	YsShellExtReader reader;
+	YsListItem <YsString> *str;
+	str=NULL;
+
+	BeginLoad();
+	reader.StartMergeSrf(*this);
+	while((str=text.FindNext(str))!=NULL)
+	{
+		if(reader.ReadSrfOneLine(*this,str->dat)!=YSOK)
+		{
+			return YSERR;
+		}
+	}
+	reader.EndMergeSrf();
+	EndLoad();
+
+	return YSOK;
+}
+
+void YsVisualSrf::BeginLoad(void)
+{
 	CleanUp();
-	return reader.MergeSrf(*this,inStream);
+}
+void YsVisualSrf::EndLoad(void)
+{
+	YsShellExt_OrientationUtil orientationUtil;
+	YsShellExt *shlExt=(YsShellExt *)this;
+
+	orientationUtil.FixOrientationBasedOnAssignedNormal(*shlExt);
+	for(auto plHd : orientationUtil.GetPolygonNeedFlip())
+	{
+		auto plVtHd=shlExt->GetPolygonVertex(plHd);
+		plVtHd.Invert();
+		shlExt->SetPolygonVertex(plHd,plVtHd);
+	}
 }
 
 // Warning!
